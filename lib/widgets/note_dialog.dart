@@ -16,9 +16,7 @@ class NoteDialog extends StatefulWidget {
 
 class _NoteDialogState extends State<NoteDialog> {
   final TextEditingController _titleController = TextEditingController();
-
   final TextEditingController _descriptionController = TextEditingController();
-
   File? _imageFile;
 
   @override
@@ -65,22 +63,19 @@ class _NoteDialogState extends State<NoteDialog> {
           ),
           const Padding(
             padding: EdgeInsets.only(top: 20),
-            child: Text('Image'),
+            child: Text('Image: '),
           ),
           Expanded(
               child: _imageFile != null
-                  ? Image.file(
-                      _imageFile!,
-                      fit: BoxFit.cover,
-                    )
+                  ? Image.file(_imageFile!, fit: BoxFit.cover)
                   : (widget.note?.imageUrl != null &&
-                          Uri.parse(widget.note!.imageUrl!).isAbsolute)
-                      ? Image.network(
-                          widget.note!.imageUrl!,
-                          fit: BoxFit.cover,
-                        )
-                      : Container()),
-          TextButton(onPressed: _pickImage, child: const Text('Pick Image'))
+                          Uri.parse(widget.note!.imageUrl!).isAbsolute
+                      ? Image.network(widget.note!.imageUrl!, fit: BoxFit.cover)
+                      : Container())),
+          TextButton(
+            onPressed: _pickImage,
+            child: const Text('Pick Image'),
+          ),
         ],
       ),
       actions: [
@@ -98,17 +93,20 @@ class _NoteDialogState extends State<NoteDialog> {
             String? imageUrl;
             if (_imageFile != null) {
               imageUrl = await NoteService.uploadImage(_imageFile!);
+            } else {
+              imageUrl = widget.note?.imageUrl;
             }
             Note note = Note(
-                id: widget.note?.id,
-                title: _titleController.text,
-                description: _descriptionController.text,
-                imageUrl: imageUrl,
-                createdAt: widget.note?.createdAt);
+              id: widget.note?.id,
+              title: _titleController.text,
+              description: _descriptionController.text,
+              imageUrl: imageUrl,
+              createdAt: widget.note?.createdAt,
+            );
+
             if (widget.note == null) {
-              NoteService.addNote(note).whenComplete(() {
-                Navigator.of(context).pop();
-              });
+              NoteService.addNote(note)
+                  .whenComplete(() => Navigator.of(context).pop());
             } else {
               NoteService.updateNote(note)
                   .whenComplete(() => Navigator.of(context).pop());
