@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:notes/model/note.dart';
+import 'package:notes/services/location_service.dart';
 import 'package:notes/services/note_services.dart';
 
 class NoteDialog extends StatefulWidget {
@@ -18,6 +20,8 @@ class _NoteDialogState extends State<NoteDialog> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   File? _imageFile;
+  Position? _currentPosition;
+  // String? _currentAddress;
 
   @override
   void initState() {
@@ -36,6 +40,15 @@ class _NoteDialogState extends State<NoteDialog> {
         _imageFile = File(pickedFile.path);
       });
     }
+  }
+
+  Future<void> _pickLocation() async {
+    final currentPosition = await LocationService.getCurrentPosition();
+    // final currentAddress = await LocationService.getAddressFromLatLng(_currentPosition!);
+    setState(() {
+      _currentPosition = currentPosition;
+      // _currentAddress = currentAddress;
+    });
   }
 
   @override
@@ -76,6 +89,13 @@ class _NoteDialogState extends State<NoteDialog> {
             onPressed: _pickImage,
             child: const Text('Pick Image'),
           ),
+          TextButton(
+            onPressed: _pickLocation,
+            child: const Text('Get Current Location'),
+          ),
+          Text('LAT: ${_currentPosition?.latitude ?? ""}'),
+          Text('LNG: ${_currentPosition?.longitude ?? ""}'),
+          // Text('ADDRESS: ${_currentAddress ?? ""}'),
         ],
       ),
       actions: [
@@ -101,6 +121,8 @@ class _NoteDialogState extends State<NoteDialog> {
               title: _titleController.text,
               description: _descriptionController.text,
               imageUrl: imageUrl,
+              latitude: _currentPosition?.latitude,
+              longitude: _currentPosition?.longitude,
               createdAt: widget.note?.createdAt,
             );
 
